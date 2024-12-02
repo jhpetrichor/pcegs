@@ -1,0 +1,10 @@
+.cache
+.idea
+.vscode
+.bin
+.build
+cmake-build-debug
+evaluation
+python
+result*
+tttt
