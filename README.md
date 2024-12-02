@@ -1,4 +1,16 @@
-# complex_prediction
+# PCEGS
+Identification of protein complexes throuth integrative gene ontology parent-child semantic similarity and dynamic protein-protein interactions
+
+## usage
+### compile
+```bash
+mkdir build && cd build && cmake ..
+make
 ```
-./cns /home/jh/code/JHPC/dataset/Yeast/PPI/Collins.txt /home/jh/code/result/collins0.1_0.1_0.1.txt 0.1 0.1 0.1
+### run
+pcegs data_name result alpha bete
+example
+```bash
+cd bin
+./pcegs data_name result 0.5 0.5
 ```
