@@ -36,3 +36,8 @@ target_link_libraries(nodynamic cpdp)
 ## nodynamic
 add_executable(nodag ${SOURCE_DIR}/no_dag.cpp)
 target_link_libraries(nodag cpdp)
+
+## nodynamic
+add_executable(no_essential ${SOURCE_DIR}/no_essential.cpp)
+target_link_libraries(no_essential cpdp)
+

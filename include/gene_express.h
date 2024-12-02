@@ -47,6 +47,7 @@ public:
     map<string, double> active_by_top();
     // vector<UnGraph> build_KPIN(const UnGraph* g);
     vector<Graph> build_KPIN(const Graph* g);
+    vector<Graph> build_KPIN_3_sigma(const Graph* g);
     vector<Graph> build_KPIN_no_dag(const Graph* g);
     vector<Graph> build_KPIN1(const Graph* g);
 
