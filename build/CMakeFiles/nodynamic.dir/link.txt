@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 CMakeFiles/nodynamic.dir/src/no_dynamic.cpp.o -o ../bin/nodynamic   -L/home/jh/JHPC/lib  -Wl,-rpath,/home/jh/JHPC/lib ../lib/libcpdp.so 

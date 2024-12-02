@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 CMakeFiles/pcegs.dir/src/pcegs.cpp.o -o ../bin/pcegs   -L/home/jh/JHPC/lib  -Wl,-rpath,/home/jh/JHPC/lib ../lib/libcpdp.so 
