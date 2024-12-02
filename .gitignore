@@ -1,8 +1,8 @@
 .cache
 .idea
 .vscode
-.bin
-.build
+bin
+build
 cmake-build-debug
 evaluation
 python
