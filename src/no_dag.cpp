@@ -146,7 +146,6 @@ int main(int argc, char const** argv) {
         complexes.insert(temp_complexes.begin(), temp_complexes.end());
     }
     spdlog::debug("complex count: {}", complexes.size());
-    // Complex::write_complex(result, complexes);
 
     auto res = function2(complexes);
     Complex::write_complex(result, res);
