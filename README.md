@@ -2,7 +2,7 @@
 Identification of protein complexes throuth integrative gene ontology parent-child semantic similarity and dynamic protein-protein interactions
 
 ## usage
-### step 0: loggor
+### step 0: logging
 
 install spglod <https://github.com/gabime/spdlog>
 ```bash

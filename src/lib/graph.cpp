@@ -2,11 +2,12 @@
 
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <ostream>
 #include <spdlog/spdlog.h>
 #include <sstream>
-#include <iostream>
+#include <vector>
 
 Edge::Edge(int a, int b, double __weight) {
     if (a < b) {
@@ -35,20 +36,21 @@ void Edge::debug() const {
 
 //=======================Graph=============================
 
-Graph::Graph(const string& ppi_file) {
+Graph::Graph(const string& ppi_file, bool weighted) {
     vector<int> edge_list;
     map<string, int> __protein_id;
     map<int, string> __id_protein;
-    read_edge(ppi_file, edge_list, __protein_id, __id_protein);
+    vector<double> edge_weights;
+    read_edge(ppi_file, edge_list, __protein_id, __id_protein, edge_weights,
+              weighted);
     id_protein = std::move(__id_protein);
     protein_id = std::move(protein_id);
     node_count = __protein_id.size();
     connected.resize(node_count, vector<bool>(node_count, false));
     for (int i = 0; i < edge_list.size(); i += 2) {
-        add_edge(edge_list[i], edge_list[i + 1], 0.0);
+        add_edge(edge_list[i], edge_list[i + 1], edge_weights[i/2]);
     }
-    // std::cout << "node_count: " << node_count << "\t edge_count: " << edge_count
-            //   << endl;
+    
     spdlog::info("node_count: {}, edge_count: {}", node_count, edge_count);
 }
 
@@ -171,7 +173,9 @@ int Graph::degree(int n) const {
 
 void Graph::read_edge(const string& file_path, vector<int>& edge_list,
                       map<string, int>& __protein_id,
-                      map<int, string>& __id_protein) const {
+                      map<int, string>& __id_protein,
+                      vector<double>& edge_weight,
+                      bool weighted) const {
     fstream file(file_path);
     if (!file.is_open()) {
         cerr << "Failed to open file! " << file_path << endl;
@@ -196,6 +200,15 @@ void Graph::read_edge(const string& file_path, vector<int>& edge_list,
             __protein_id.insert(make_pair(protein, __protein_id.size()));
             __id_protein.insert(make_pair(__id_protein.size(), protein));
         }
+
+        if (weighted) {
+            double w;
+            iss >> w;
+            edge_weight.push_back(w);
+        } else {
+            edge_weight.push_back(1.0);
+        }
+
         edge_list.emplace_back(__protein_id[protein]);
     }
     file.close();
@@ -245,7 +258,6 @@ void Graph::weighted_by_go_term(vector<Edge>& __edges) const {
                    ancestor_child.get_similarity_protein(smaller, bigger));
     }
 }
-
 
 void Graph::normalize_edge_weight_min_max() {
     double max_weight = std::numeric_limits<double>::min();
@@ -374,42 +386,49 @@ double Graph::evaluate(set<int>& complex) const {
 
 // 全局
 double Graph::clustering_coefficient() const {
-    return 2.0 * edge_count / static_cast<double>(node_count * (node_count - 1));
+    return 2.0 * edge_count /
+           static_cast<double>(node_count * (node_count - 1));
 }
 
 // 局部加权
 double Graph::clustering_coefficient(int p) const {
     set<int> neighbor = get_neighbor(p);
-    if(neighbor.size() == 0 || neighbor.size() == 1) return 0;
+    if (neighbor.size() == 0 || neighbor.size() == 1)
+        return 0;
     double sum = 0.0;
 
-    for(auto n: neighbor) {
+    for (auto n : neighbor) {
         auto it = edge_id.find({p, n});
-        if(it == edge_id.end()) continue;
+        if (it == edge_id.end())
+            continue;
         auto e = edges[it->second];
         sum += e.weight;
     }
 
-    return 2.0 * sum / static_cast<double>(neighbor.size() * (neighbor.size() - 1));
+    return 2.0 * sum /
+           static_cast<double>(neighbor.size() * (neighbor.size() - 1));
 }
 
 // 全局加权
 double Graph::clustering_coefficient2() const {
     double sum = 0.0;
-    for(auto& e: edges) {
+    for (auto& e : edges) {
         sum += e.weight;
     }
-    return 2.0 * static_cast<double>(sum) / static_cast<double>(node_count * (node_count - 1));
+    return 2.0 * static_cast<double>(sum) /
+           static_cast<double>(node_count * (node_count - 1));
 }
 
 double Graph::clustering_coefficient(set<int>& nodes) const {
     int edge = 0;
-    for(auto i: nodes) {
-        for(auto j: nodes) {
-            if(connected[i][j]) edge += 1;
+    for (auto i : nodes) {
+        for (auto j : nodes) {
+            if (connected[i][j])
+                edge += 1;
         }
     }
-    return static_cast<double>(edge) / static_cast<double>(nodes.size() * (nodes.size() - 1));
+    return static_cast<double>(edge) /
+           static_cast<double>(nodes.size() * (nodes.size() - 1));
 }
 
 double Graph::calculate_complex_cohesion_score(set<int>& complex) const {
@@ -417,9 +436,9 @@ double Graph::calculate_complex_cohesion_score(set<int>& complex) const {
     map<int, double> sum;
     map<int, int> count;
     vector<int> v_complex(complex.begin(), complex.end());
-    for(int i = 0; i < v_complex.size(); i++) {
-        for(int j = i + 1; j < v_complex.size(); j++) {
-            if(connected[v_complex[i]][v_complex[j]]) {
+    for (int i = 0; i < v_complex.size(); i++) {
+        for (int j = i + 1; j < v_complex.size(); j++) {
+            if (connected[v_complex[i]][v_complex[j]]) {
                 count[v_complex[i]] += 1;
                 count[v_complex[j]] += 1;
                 auto e = edges[get_edge_id(v_complex[i], v_complex[j])];
@@ -429,8 +448,9 @@ double Graph::calculate_complex_cohesion_score(set<int>& complex) const {
         }
     }
 
-    for(int i = 0; i < v_complex.size(); i++) {
-        cohesion += sum[v_complex[i]] * (count[v_complex[i]] + 1)/ complex.size();
+    for (int i = 0; i < v_complex.size(); i++) {
+        cohesion +=
+            sum[v_complex[i]] * (count[v_complex[i]] + 1) / complex.size();
     }
     cohesion /= complex.size();
     // cout << cohesion << endl;
@@ -440,8 +460,7 @@ double Graph::calculate_complex_cohesion_score(set<int>& complex) const {
 /*======================== namespace Complex ================================ */
 
 void Complex::update_complexes(vector<set<string>>& complexes,
-                               set<string>& complex,
-                               double threshold) {
+                               set<string>& complex, double threshold) {
     for (auto& c : complexes) {
         if (overlapping_score(c, complex) >= threshold) {
             return;
@@ -452,8 +471,7 @@ void Complex::update_complexes(vector<set<string>>& complexes,
 
 // 超过阈值合并
 void Complex::update_complexes2(vector<set<string>>& complexes,
-                                set<string>& complex,
-                                double threshold) {
+                                set<string>& complex, double threshold) {
     bool flag = false;
     for (auto& c : complexes) {
         if (overlapping_score(c, complex) >= threshold) {
@@ -461,7 +479,7 @@ void Complex::update_complexes2(vector<set<string>>& complexes,
             flag = true;
         }
     }
-    if(!flag)
+    if (!flag)
         complexes.push_back(complex);
 }
 

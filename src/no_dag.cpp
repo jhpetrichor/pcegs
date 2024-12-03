@@ -131,7 +131,7 @@ int main(int argc, char const** argv) {
     spdlog::info("ppi_name: {}", ppi_path);
     spdlog::info("alpha: {}, beta: {}", ct, at);
     
-    Graph g(ppi_path);
+    Graph g(ppi_path, true);
     
     set<set<string>>  complexes;
     GeneExpress ges;

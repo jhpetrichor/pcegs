@@ -34,7 +34,9 @@ class Graph {
     };
     void read_edge(const string& file_path, vector<int>& edge_list,
                    map<string, int>& __protein_id,
-                   map<int, string>& __id_protein) const;
+                   map<int, string>& __id_protein,
+                   vector<double>& edge_weight,
+                   bool weighted) const;
 
   public:
     static DAG child_ancestor;
@@ -50,12 +52,12 @@ class Graph {
     map<int, string> id_protein;
 
     Graph() = default;
-    explicit Graph(const string& ppi_file);
+    explicit Graph(const string& ppi_file, bool weighted = false);
     explicit Graph(vector<string>& edge_list, vector<double> edge_weight);
     ~Graph() = default;
     set<int> get_neighbor(int n) const;
     void add_edge(int u, int v, double weight = 0.0);
-    // 谨慎使用不安全  
+    // 谨慎使用不安全
     void remove_edge(int u, int v);
     int get_edge_id(int u, int v) const;
     int degree(int id) const;
@@ -83,8 +85,7 @@ class Graph {
 
 namespace Complex {
 
-template<typename T>
-bool CompareSetBySize(const set<T>& a, const set<T>& b) {
+template <typename T> bool CompareSetBySize(const set<T>& a, const set<T>& b) {
     return a.size() > b.size();
 }
 
@@ -98,7 +99,7 @@ template <typename T> double overlapping_score(set<T>& a, set<T>& b) {
 void update_complexes(vector<set<string>>& complexes, set<string>& complex,
                       double threshold = 0.65);
 void update_complexes2(vector<set<string>>& complexes, set<string>& complex,
-                      double threshold = 0.65);
+                       double threshold = 0.65);
 void write_complex(const string& file_path, const map<int, string>& id_protein,
                    const vector<set<int>>& comeplxes);
 
